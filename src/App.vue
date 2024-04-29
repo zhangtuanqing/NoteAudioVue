@@ -14,9 +14,6 @@ function generateWaveformData() {
 
   onMounted(() => {
     console.log("onMounted");
-    noteAudio.value.addAudioEventListener(function (event: Event) {
-      console.log(event.type + "," + event.detail.audioUrl);
-    });
   });
 
 const recordingState = reactive(

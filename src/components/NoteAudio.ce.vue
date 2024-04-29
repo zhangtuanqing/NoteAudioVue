@@ -1,24 +1,29 @@
 <template>
-  <div>
+  <div id="shadow-host" ref="shadowHost">
   <div ref="mp3Container" class="mp3-container" @click="handleContainerClick">
-    <audio id="note-audio" style="width: 50%; height: 100%" controls ref="audioElem"></audio>
-    <button id="more" ref="moreBtn" style="width: 10%; height: 100%; display: inline; align-content: center" @click="onMoreClick">展示浮层</button>
+    <audio id="note-audio" style="width: 50%; height: 100%; display: none;" controls ref="audioElem"></audio>
+    <img ref="playControl" src="../assets/play.png"  alt=" " style="margin-right: 20px; margin-left: 10px;" @click="clickPlayPause"/>
+    <el-slider id="audio-progressbar" v-model="sliderValue"></el-slider>
+    <img id="more" ref="moreBtn" style="align-content: center" src="../assets/more.png" alt=" " @click="onMoreClick"></img>
   </div>
   <div ref="recordingIcon" class="recording-container">
-    <img src="../../src/assets/duer_note_icon_recording_icon.png" alt="" style="height: 100%">
+    <img src="../../src/assets/duer_note_icon_recording_icon.png" alt="" style="height: 100%; user-select: none;">
+
   </div>
   <div v-if="showModal" ref="modalRef" class="modal" :style="{ top: buttonTop + 'px', left: buttonLeft + 'px' }">
     <div class="modal-content">
-      <button @click="onSaveClick" style="margin-bottom: 20px">保存</button>
-      <button @click="onDeleteClick">删除</button>
+      <button @click="onSaveClick" style="margin-bottom: 20px; background-color: transparent; border: none; outline: none;">保存</button>
+      <button @click="onDeleteClick" style="margin-bottom: 20px; background-color: transparent; border: none; outline: none;">删除</button>
     </div>
   </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, onUnmounted, watch, nextTick} from 'vue';
+import {ref, onMounted, onUnmounted, watch} from 'vue';
 import { defineExpose } from 'vue'
+import { ElSlider } from 'element-plus'
+import 'element-plus/dist/index.css'
 
 const props = defineProps({
   width: {
@@ -39,13 +44,19 @@ const props = defineProps({
   }
 })
 
+let sliderValue=ref(0);
+let playControl = ref<HTMLImageElement>(null);
+
+let playing = false;
+
 const emitters = defineEmits(['save', 'delete'])
 
 let mp3Container = ref(null)
 let recordingIcon = ref(null)
-let audioElem = ref(null)
+let audioElem = ref<HTMLAudioElement>(null)
 let moreBtn = ref(null)
 let modalRef = ref(null)
+let shadowHost = ref(null)
 
 const showModal = ref(false);
 const buttonTop = ref(0);
@@ -55,7 +66,7 @@ const onMoreClick = (e: MouseEvent) => {
   e.stopPropagation();
   if (moreBtn.value) {
     const { top, left } = moreBtn.value.getBoundingClientRect();
-    buttonTop.value = top + window.scrollY;
+    buttonTop.value = top;
     buttonLeft.value = left;
   }
   showModal.value = true;
@@ -69,9 +80,27 @@ const handleContainerClick = (e: MouseEvent) => {
   }
 }
 
+const clickPlayPause = (e: MouseEvent) => {
+  if (playing) {
+    playing = false;
+    playControl.value.src = "/src/assets/play.png";
+    (audioElem.value as HTMLAudioElement).pause();
+  } else {
+    playing = true;
+    playControl.value.src = "/src/assets/pause.png";
+    (audioElem.value as HTMLAudioElement).play();
+  }
+}
+
 onMounted( () => {
   console.log('onMounted')
-  updateState()
+  updateState();
+  (audioElem.value as HTMLAudioElement).addEventListener('timeupdate', () => {
+      let curTime = (audioElem.value as HTMLAudioElement).currentTime;
+      let duration = (audioElem.value as HTMLAudioElement).duration;
+      console.log("playing: " + curTime + ", " + duration);
+      sliderValue.value = (curTime / duration) * 100;
+  })
 });
 
 onUnmounted(() => {
@@ -144,17 +173,20 @@ defineExpose({
   width: 100%;
   height: 60px;
   align-self: start;
-  background-color: transparent;
   overflow: hidden;
   text-align: start;
   vertical-align: center;
   display: flex;
   align-items: center;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
 }
 .recording-container {
   width: 100%;
   height: 60px;
-  background-color: #f9f9f9;
+  display: flex;
   text-align: start;
 }
 .modal {
@@ -166,7 +198,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background-color: #fff;
+  background-color: #f9f9f9;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
