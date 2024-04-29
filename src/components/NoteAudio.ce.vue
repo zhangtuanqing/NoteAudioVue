@@ -24,6 +24,8 @@ import {ref, onMounted, onUnmounted, watch} from 'vue';
 import { defineExpose } from 'vue'
 import { ElSlider } from 'element-plus'
 import 'element-plus/dist/index.css'
+import playImage from '../assets/play.png'
+import pauseImage from '../assets/pause.png'
 
 const props = defineProps({
   width: {
@@ -66,7 +68,7 @@ const onMoreClick = (e: MouseEvent) => {
   e.stopPropagation();
   if (moreBtn.value) {
     const { top, left } = moreBtn.value.getBoundingClientRect();
-    buttonTop.value = top;
+    buttonTop.value = top + window.scrollY;
     buttonLeft.value = left;
   }
   showModal.value = true;
@@ -83,11 +85,15 @@ const handleContainerClick = (e: MouseEvent) => {
 const clickPlayPause = (e: MouseEvent) => {
   if (playing) {
     playing = false;
-    playControl.value.src = "/src/assets/play.png";
+    console.log("pause_audio");
+    const playUrl = new URL('../assets/play.png', import.meta.url).href
+    playControl.value.src = playUrl;
     (audioElem.value as HTMLAudioElement).pause();
   } else {
     playing = true;
-    playControl.value.src = "/src/assets/pause.png";
+    console.log("play_audio");
+    const pauseUrl = new URL('../assets/pause.png', import.meta.url).href
+    playControl.value.src = pauseUrl;
     (audioElem.value as HTMLAudioElement).play();
   }
 }
@@ -170,7 +176,7 @@ defineExpose({
 <style scoped>
 .mp3-container {
   position: relative;
-  width: 100%;
+  width: 40%;
   height: 60px;
   align-self: start;
   overflow: hidden;
@@ -202,5 +208,11 @@ defineExpose({
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.res_holoder-play {
+  background-image: url("/src/assets/play.png");
+}
+.res_holoder-pause {
+  background-image: url("/src/assets/pause.png");
 }
 </style>
