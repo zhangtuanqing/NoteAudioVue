@@ -62,7 +62,7 @@ let recordingIcon = ref(null)
 let audioElem = ref<HTMLAudioElement>(null)
 let moreBtn = ref(null)
 let modalRef = ref(null)
-let shadowHost = ref(null)
+let shadowHost = ref<HTMLDivElement>(null)
 let audioTimeValue = ref<string>("00:00:00")
 
 const showModal = ref(false);
@@ -224,7 +224,6 @@ defineExpose({
   height: 60px;
   display: flex;
   text-align: start;
-  margin-bottom: 30px;
 }
 
 .modal {
