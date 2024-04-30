@@ -1,5 +1,5 @@
 <template>
-  <div id="shadow-host" ref="shadowHost">
+  <div ref="shadowHost" class="audioWrapper">
     <div ref="mp3Container" class="mp3-container" @click="handleContainerClick">
       <audio id="note-audio" style="width: 50%; height: 100%; display: none;" controls ref="audioElem"></audio>
       <img ref="playControl" src="../assets/play.png" alt=" "
@@ -62,7 +62,7 @@ let recordingIcon = ref(null)
 let audioElem = ref<HTMLAudioElement>(null)
 let moreBtn = ref(null)
 let modalRef = ref(null)
-let shadowHost = ref<HTMLDivElement>(null)
+let shadowHost = ref(null)
 let audioTimeValue = ref<string>("00:00:00")
 
 const showModal = ref(false);
@@ -112,6 +112,50 @@ onMounted(() => {
   })
   emitters('onMounted', {
     audioUrl: props.audioUrl,
+  });
+  addEventListener("keydown", ev => {
+    let interceptDelete = false;
+    const which = ev.which;
+    console.log("delete_key pressed: " + ev.currentTarget);
+    const selection = window.getSelection();
+    if (selection != null && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      if (range.collapsed) {
+        const endContainer = range.endContainer;
+        const endOffset = range.endOffset;
+        console.log("endContainer: ", endContainer.nodeName);
+        if (endContainer.nodeType === Node.ELEMENT_NODE) {
+          console.log("endOffset: ", endOffset + ", length: " + endContainer.childNodes.length);
+          if (endOffset < endContainer.childNodes.length && endOffset >= 0) {
+            let index = endOffset - 1;
+            if (index < 0) {
+              index = 0;
+            }
+            const nextNode = endContainer.childNodes[index];
+            const nextNodeName = nextNode.nodeName;
+            console.log("nextNodeName", nextNodeName);
+            if (nextNodeName === "NOTE-AUDIO") {
+              const audioUrl = nextNode.getAttribute('audio-url')
+              if (audioUrl === props.audioUrl) {
+                interceptDelete = true;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (which == 8) {
+      console.log("delete_key pressed")
+      if (interceptDelete) {
+        console.log("阻止删除按键")
+        ev.preventDefault();
+        ev.stopPropagation();
+        mp3Container.value!.style.backgroundColor = "#0000ff44"
+        setTimeout(function () {
+          mp3Container.value!.style.backgroundColor = "#3B77FB0A";
+        }, 1000);
+      }
+    }
   });
 });
 
@@ -205,6 +249,9 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
+.audioWrapper {
+
+}
 .mp3-container {
   position: relative;
   width: 458px;
